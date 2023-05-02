@@ -13,22 +13,22 @@
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-#include<SpeedyStepper.h>
+#include "Stepper.h"
+
+Stepper stepperX;
+Stepper stepperY;
 
 const int button = 18;
 
-const int MOTOR1_STEP_PIN = 3;
-const int MOTOR1_DIRECTION_PIN = 2;
-const int MOTOR1_ENABLE = 26;
+const int MOTOR_X_STEP_PIN = 3;
+const int MOTOR_X_DIRECTION_PIN = 2;
+const int MOTOR_X_ENABLE = 26;
 
-const int MOTOR2_STEP_PIN = 1;
-const int MOTOR2_DIRECTION_PIN =0;
-const int MOTOR2_ENABLE = 14;
+const int MOTOR_Y_STEP_PIN = 1;
+const int MOTOR_Y_DIRECTION_PIN =0;
+const int MOTOR_Y_ENABLE = 14;
 
-SpeedyStepper stepper1;
-SpeedyStepper stepper2;
-
-void debugDisplay(char* message)
+void debugDisplay(const char* message)
 {
     display.clearDisplay();
     display.setCursor(0,0);
@@ -56,31 +56,38 @@ void setup()
     debugDisplay("Display init success!");
   }
 
-  //stepper 1
-  stepper1.connectToPins(MOTOR1_STEP_PIN, MOTOR1_DIRECTION_PIN);
-  pinMode(MOTOR1_ENABLE, OUTPUT);
-  digitalWrite(MOTOR1_ENABLE, LOW);
-  stepper1.setSpeedInStepsPerSecond(1000*16);
-  stepper1.setAccelerationInStepsPerSecondPerSecond(2000*16);  
+  stepperX.SetUp(MOTOR_X_STEP_PIN, MOTOR_X_DIRECTION_PIN, MOTOR_X_ENABLE);
+  stepperY.SetUp(MOTOR_Y_STEP_PIN, MOTOR_Y_DIRECTION_PIN, MOTOR_Y_ENABLE);
 
-  //stepper 2
-  stepper2.connectToPins(MOTOR2_STEP_PIN, MOTOR2_DIRECTION_PIN);
-  pinMode(MOTOR2_ENABLE, OUTPUT);
-  digitalWrite(MOTOR2_ENABLE, LOW);
-  stepper2.setSpeedInStepsPerSecond(1000*16);
-  stepper2.setAccelerationInStepsPerSecondPerSecond(2000*16);  
+
+  debugDisplay("Wait for end stop...");
+  while (digitalRead(button) != LOW)
+  {
+    delay(100);
+  }
+
+  debugDisplay("Homing...");
+
+  bool didHome = stepperY.Home(button);
+  if(!didHome)
+  {
+    debugDisplay("Failed to home!");
+  }
+  else
+  {
+    debugDisplay("Home Sucessful!")
+;  }
 }
+
+long forward = 1;
 
 void loop() 
 {
   bool pressed = digitalRead(button) == LOW;
-  if(pressed && stepper1.motionComplete() && stepper2.motionComplete())
+  if(pressed)
   {
-    stepper1.setupRelativeMoveInSteps(200*16);
-    stepper2.setupRelativeMoveInSteps(200*16);
-    debugDisplay("Pressed!");
+    stepperY.Stepper.moveRelativeInMillimeters(forward * 100);
+    debugDisplay("Move!");
+    forward *= -1;
   }
-
-  stepper1.processMovement();
-  stepper2.processMovement();
 }
