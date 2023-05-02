@@ -17,10 +17,6 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 const int button = 18;
 
-//const int LCD_POWER = 18;
-//const int LCD_SCL = 19;
-//const int LCD_SDA =20;
-
 const int MOTOR1_STEP_PIN = 3;
 const int MOTOR1_DIRECTION_PIN = 2;
 const int MOTOR1_ENABLE = 26;
@@ -78,10 +74,13 @@ void setup()
 void loop() 
 {
   bool pressed = digitalRead(button) == LOW;
-  if(pressed)
+  if(pressed && stepper1.motionComplete() && stepper2.motionComplete())
   {
-    stepper1.moveRelativeInSteps(200*16);
-    stepper2.moveRelativeInSteps(200*16);
+    stepper1.setupRelativeMoveInSteps(200*16);
+    stepper2.setupRelativeMoveInSteps(200*16);
     debugDisplay("Pressed!");
   }
+
+  stepper1.processMovement();
+  stepper2.processMovement();
 }
