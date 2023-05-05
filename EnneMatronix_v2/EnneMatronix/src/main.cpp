@@ -20,13 +20,16 @@ Stepper stepperY;
 
 const int button = 18;
 
-const int MOTOR_X_STEP_PIN = 3;
-const int MOTOR_X_DIRECTION_PIN = 2;
-const int MOTOR_X_ENABLE = 26;
+const int MOTOR_X_STEP_PIN = 15;
+const int MOTOR_X_DIRECTION_PIN = 21;
+const int MOTOR_X_ENABLE =14;
 
-const int MOTOR_Y_STEP_PIN = 1;
-const int MOTOR_Y_DIRECTION_PIN =0;
+const int MOTOR_Y_STEP_PIN = 22;
+const int MOTOR_Y_DIRECTION_PIN =23;
 const int MOTOR_Y_ENABLE = 14;
+
+const float minX = 0;
+const float maxX = 450;
 
 void debugDisplay(const char* message)
 {
@@ -34,6 +37,28 @@ void debugDisplay(const char* message)
     display.setCursor(0,0);
     display.print(message);
     display.display();
+}
+
+void waitForEndStopPress(int buttonID)
+{
+  while (digitalRead(buttonID) != LOW)
+  {
+    delay(100);
+  }
+}
+
+void waitForEndStopRelease(int buttonID)
+{
+  while (digitalRead(buttonID) == LOW)
+  {
+    delay(100);
+  }
+}
+
+void waitForEndStopFullPress(int buttonID)
+{
+  waitForEndStopPress(buttonID);
+  waitForEndStopRelease(buttonID);
 }
 
 void setup() 
@@ -57,37 +82,41 @@ void setup()
   }
 
   stepperX.SetUp(MOTOR_X_STEP_PIN, MOTOR_X_DIRECTION_PIN, MOTOR_X_ENABLE);
+  stepperX.SetUpLimits(true, minX, maxX);
+
   stepperY.SetUp(MOTOR_Y_STEP_PIN, MOTOR_Y_DIRECTION_PIN, MOTOR_Y_ENABLE);
 
 
   debugDisplay("Wait for end stop...");
-  while (digitalRead(button) != LOW)
-  {
-    delay(100);
-  }
+  waitForEndStopFullPress(button);
+
+  delay(100);
 
   debugDisplay("Homing...");
 
-  bool didHome = stepperY.Home(button);
+  bool didHome = stepperX.Home(button);
   if(!didHome)
   {
     debugDisplay("Failed to home!");
   }
   else
   {
-    debugDisplay("Home Sucessful!")
-;  }
+    debugDisplay("Home Sucessful!");
+  }
+
+  waitForEndStopRelease(button);
+  delay(100);
 }
 
 long forward = 1;
 
 void loop() 
 {
-  bool pressed = digitalRead(button) == LOW;
-  if(pressed)
-  {
-    stepperY.Stepper.moveRelativeInMillimeters(forward * 100);
-    debugDisplay("Move!");
-    forward *= -1;
-  }
+    stepperX.moveToPosition(500);
+
+    waitForEndStopFullPress(button);
+
+    stepperX.moveToPosition(0);
+
+    waitForEndStopFullPress(button);
 }
