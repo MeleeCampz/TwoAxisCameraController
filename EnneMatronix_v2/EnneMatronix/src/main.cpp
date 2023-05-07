@@ -23,13 +23,18 @@ const int button = 18;
 const int MOTOR_X_STEP_PIN = 15;
 const int MOTOR_X_DIRECTION_PIN = 21;
 const int MOTOR_X_ENABLE =14;
+const float MOTOR_X_STEPS_PER_MILLIMETER = 80;
 
 const int MOTOR_Y_STEP_PIN = 22;
 const int MOTOR_Y_DIRECTION_PIN =23;
 const int MOTOR_Y_ENABLE = 14;
+//simply use degrees in stead of mm for rotation
+const int MOTOR_Y_STEPS_PER_DEGREE = 10;
 
-const float minX = 0;
-const float maxX = 450;
+const float SLIDER_LENGTH = 380;
+const float MARGIN = 15;
+const float MIN_X = MARGIN;
+const float MAX_X = SLIDER_LENGTH - MARGIN;
 
 void debugDisplay(const char* message)
 {
@@ -61,6 +66,34 @@ void waitForEndStopFullPress(int buttonID)
   waitForEndStopRelease(buttonID);
 }
 
+const int MAX_BUFFER_SIZE = 8;
+char receive_buffer[MAX_BUFFER_SIZE];
+bool newData = false;
+
+void readSerialInput()
+{
+    static byte ndx = 0;
+    char endMarker = '\n';
+    char rc;
+    
+    while (Serial.available() > 0 && newData == false) {
+        rc = Serial.read();
+
+        if (rc != endMarker) {
+            receive_buffer[ndx] = rc;
+            ndx++;
+            if (ndx >= MAX_BUFFER_SIZE) {
+                ndx = MAX_BUFFER_SIZE - 1;
+            }
+        }
+        else {
+            receive_buffer[ndx] = '\0'; // terminate the string
+            ndx = 0;
+            newData = true;
+        }
+    }
+}
+
 void setup() 
 {
   //Button
@@ -81,11 +114,10 @@ void setup()
     debugDisplay("Display init success!");
   }
 
-  stepperX.SetUp(MOTOR_X_STEP_PIN, MOTOR_X_DIRECTION_PIN, MOTOR_X_ENABLE);
-  stepperX.SetUpLimits(true, minX, maxX);
+  stepperX.SetUp(MOTOR_X_STEP_PIN, MOTOR_X_DIRECTION_PIN, MOTOR_X_ENABLE, MOTOR_X_STEPS_PER_MILLIMETER);
+  stepperX.SetUpLimits(true, MIN_X, MAX_X);
 
-  stepperY.SetUp(MOTOR_Y_STEP_PIN, MOTOR_Y_DIRECTION_PIN, MOTOR_Y_ENABLE);
-
+  stepperY.SetUp(MOTOR_Y_STEP_PIN, MOTOR_Y_DIRECTION_PIN, MOTOR_Y_ENABLE, MOTOR_Y_STEPS_PER_DEGREE);
 
   debugDisplay("Wait for end stop...");
   waitForEndStopFullPress(button);
@@ -104,19 +136,22 @@ void setup()
     debugDisplay("Home Sucessful!");
   }
 
-  waitForEndStopRelease(button);
-  delay(100);
+  //Move to min pos to not touch stepper
+  stepperX.moveToPosition(0);
 }
-
-long forward = 1;
 
 void loop() 
 {
-    stepperX.moveToPosition(500);
+    readSerialInput();
 
-    waitForEndStopFullPress(button);
+    if(newData)
+    {
+      //Number in percent 0 - 100
+      int value = atoi(receive_buffer);
 
-    stepperX.moveToPosition(0);
+      float targetPosition =  MIN_X + (float)value / 100.f * SLIDER_LENGTH - 2 * MARGIN;
 
-    waitForEndStopFullPress(button);
+      stepperX.moveToPosition(targetPosition);
+      newData = false;
+    }
 }
