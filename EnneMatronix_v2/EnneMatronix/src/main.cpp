@@ -29,7 +29,7 @@ const int MOTOR_Y_STEP_PIN = 22;
 const int MOTOR_Y_DIRECTION_PIN =23;
 const int MOTOR_Y_ENABLE = 14;
 //simply use degrees in stead of mm for rotation
-const int MOTOR_Y_STEPS_PER_DEGREE = 10;
+const int MOTOR_Y_STEPS_PER_DEGREE = 45;
 
 const float SLIDER_LENGTH = 380;
 const float MARGIN = 15;
@@ -118,6 +118,7 @@ void setup()
   stepperX.SetUpLimits(true, MIN_X, MAX_X);
 
   stepperY.SetUp(MOTOR_Y_STEP_PIN, MOTOR_Y_DIRECTION_PIN, MOTOR_Y_ENABLE, MOTOR_Y_STEPS_PER_DEGREE);
+  stepperY.SetUpLimits(true, -90, 90);
 
   debugDisplay("Wait for end stop...");
   waitForEndStopFullPress(button);
