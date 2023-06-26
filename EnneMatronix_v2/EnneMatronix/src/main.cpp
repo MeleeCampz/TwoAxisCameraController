@@ -20,21 +20,29 @@ Stepper stepperY;
 
 const int button = 18;
 
+const float SLIDER_LENGTH = 380;
+const float MARGIN = 15;
+
 const int MOTOR_X_STEP_PIN = 15;
 const int MOTOR_X_DIRECTION_PIN = 21;
 const int MOTOR_X_ENABLE =14;
 const float MOTOR_X_STEPS_PER_MILLIMETER = 80;
+const float MOTOR_X_MAX_VEL = 2000 * 16;
+const float MOTOR_X_MAX_ACCEL = 2000 * 16;
+
+const float MIN_X = MARGIN;
+const float MAX_X = SLIDER_LENGTH - MARGIN;
 
 const int MOTOR_Y_STEP_PIN = 22;
 const int MOTOR_Y_DIRECTION_PIN =23;
 const int MOTOR_Y_ENABLE = 14;
 //simply use degrees in stead of mm for rotation
 const int MOTOR_Y_STEPS_PER_DEGREE = 45;
+const float MOTOR_Y_MAX_VEL = 2000 * 16;
+const float MOTOR_Y_MAX_ACCEL = 2000 * 16;
 
-const float SLIDER_LENGTH = 380;
-const float MARGIN = 15;
-const float MIN_X = MARGIN;
-const float MAX_X = SLIDER_LENGTH - MARGIN;
+const float MIN_Y = -90;
+const float MAX_Y = 90;
 
 void debugDisplay(const char* message)
 {
@@ -114,10 +122,10 @@ void setup()
     debugDisplay("Display init success!");
   }
 
-  stepperX.SetUp(MOTOR_X_STEP_PIN, MOTOR_X_DIRECTION_PIN, MOTOR_X_ENABLE, MOTOR_X_STEPS_PER_MILLIMETER);
+  stepperX.SetUp(MOTOR_X_STEP_PIN, MOTOR_X_DIRECTION_PIN, MOTOR_X_ENABLE, MOTOR_X_STEPS_PER_MILLIMETER, MOTOR_X_MAX_VEL, MOTOR_X_MAX_ACCEL, false, true);
   stepperX.SetUpLimits(true, MIN_X, MAX_X);
 
-  stepperY.SetUp(MOTOR_Y_STEP_PIN, MOTOR_Y_DIRECTION_PIN, MOTOR_Y_ENABLE, MOTOR_Y_STEPS_PER_DEGREE);
+  stepperY.SetUp(MOTOR_Y_STEP_PIN, MOTOR_Y_DIRECTION_PIN, MOTOR_Y_ENABLE, MOTOR_Y_STEPS_PER_DEGREE, MOTOR_Y_MAX_VEL, MOTOR_Y_MAX_ACCEL, false, false);
   stepperY.SetUpLimits(true, -90, 90);
 
   debugDisplay("Wait for end stop...");
@@ -138,7 +146,10 @@ void setup()
   }
 
   //Move to min pos to not touch stepper
+  //Disable motors as they do not need to force hold position
   stepperX.moveToPosition(0);
+  stepperX.disableMotor();
+  stepperY.disableMotor();
 }
 
 void loop() 
@@ -147,12 +158,24 @@ void loop()
 
     if(newData)
     {
+      char motor = receive_buffer[0];
       //Number in percent 0 - 100
-      int value = atoi(receive_buffer);
+      int value = atoi(receive_buffer + 1);
 
-      float targetPosition =  MIN_X + (float)value / 100.f * SLIDER_LENGTH - 2 * MARGIN;
+      //TODO: Ignore upper/lower case
+      if(motor == 'x')
+      {
+        float targetPosition =  MIN_X + (float)value / 100.f * SLIDER_LENGTH - 2 * MARGIN;
+        stepperX.moveToPosition(targetPosition);
+        stepperX.disableMotor();
+      }
+      else if(motor == 'y')
+      {
+        float targetRotation = value;
+        stepperY.moveToPosition(targetRotation);
+        stepperY.disableMotor();
+      }
 
-      stepperX.moveToPosition(targetPosition);
       newData = false;
     }
 }

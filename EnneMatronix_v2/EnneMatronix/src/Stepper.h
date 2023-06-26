@@ -15,6 +15,8 @@ class Stepper
 
         float maxVelocity;
         float acceleration;
+        bool homeDirection;
+        bool flipDirection;
 
         float ClampPosition(float position)
         {
@@ -23,7 +25,7 @@ class Stepper
         }
 
     public:
-        void SetUp(int stepPin, int motorDirPin, int motorEnablePin, float stepsPerMillimeter, float velocity, float accel)
+        void SetUp(int stepPin, int motorDirPin, int motorEnablePin, float stepsPerMillimeter, float velocity, float accel, bool homeDirection, bool flipDirection)
         {
             //stepper 1
             Stepper.connectToPins(stepPin, motorDirPin);
@@ -31,19 +33,16 @@ class Stepper
             digitalWrite(motorEnablePin, LOW);
             Stepper.setStepsPerMillimeter(stepsPerMillimeter);
 
-            maxVelocity = velocity;
-            acceleration = accel;
+            this->maxVelocity = velocity;
+            this->acceleration = accel;
+            this->homeDirection = homeDirection;
+            this->flipDirection = flipDirection;
 
 
             Stepper.setSpeedInStepsPerSecond(maxVelocity);
             Stepper.setAccelerationInStepsPerSecondPerSecond(acceleration); 
 
             isInit = true;
-        }
-
-        void SetUp(int stepPin, int motorDirPin, int motorEnablePin, float stepsPerMillimeter)
-        {
-            SetUp(stepPin, motorDirPin, motorEnablePin, stepsPerMillimeter, 2000 * 16,  2000 * 16);
         }
 
         void SetUpLimits(bool enable, float minPos, float maxPos)
@@ -56,7 +55,7 @@ class Stepper
         bool Home(int switchPin)
         {
             if(!isInit) return false;
-            bool success = Stepper.moveToHomeInSteps(-1, 200 * 10, 1000000, switchPin);
+            bool success = Stepper.moveToHomeInSteps(homeDirection ? -1 : 1, 200 * 10, 1000000, switchPin);
             
             return success;
         }
@@ -65,6 +64,11 @@ class Stepper
         {
             if(!isInit) return;
             position = ClampPosition(position);
-            Stepper.moveToPositionInMillimeters(position);
-        };
+            Stepper.moveToPositionInMillimeters(flipDirection ? -position : position);
+        }
+
+        void disableMotor()
+        {
+            Stepper.disableStepper();
+        }
 };
