@@ -1,17 +1,16 @@
 #include <Arduino.h>
 
 #include <SPI.h>
-#include <Wire.h>
 
-#include <Adafruit_GFX.h>
-#include<Adafruit_SSD1306.h>
+//#include <Adafruit_GFX.h>
+//#include<Adafruit_SSD1306.h>
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+//#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+//Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 #include "Stepper.h"
 
@@ -46,10 +45,10 @@ const float MAX_Y = 90;
 
 void debugDisplay(const char* message)
 {
-    display.clearDisplay();
-    display.setCursor(0,0);
-    display.print(message);
-    display.display();
+    // display.clearDisplay();
+    // display.setCursor(0,0);
+    // display.print(message);
+    // display.display();
 }
 
 void waitForEndStopPress(int buttonID)
@@ -104,23 +103,24 @@ void readSerialInput()
 
 void setup() 
 {
-  //Button
   Serial.begin(115200);
+
+  //Button
   pinMode(button, INPUT_PULLUP);
 
   //OLED
-  Serial.println("Starting OLED Display...");
-  if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3c))
-  {
-    Serial.println("Failed to start display..");
-  }
-  else
-  {
-    Serial.println("Success!");
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    debugDisplay("Display init success!");
-  }
+  //Serial.println("Starting OLED Display...");
+  // if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3c))
+  // {
+  //   Serial.println("Failed to start display..");
+  // }
+  // else
+  // {
+  //   Serial.println("Success!");
+  //   display.setTextSize(1);
+  //   display.setTextColor(SSD1306_WHITE);
+  //   debugDisplay("Display init success!");
+  // }
 
   stepperX.SetUp(MOTOR_X_STEP_PIN, MOTOR_X_DIRECTION_PIN, MOTOR_X_ENABLE, MOTOR_X_STEPS_PER_MILLIMETER, MOTOR_X_MAX_VEL, MOTOR_X_MAX_ACCEL, false, true);
   stepperX.SetUpLimits(true, MIN_X, MAX_X);
@@ -148,8 +148,8 @@ void setup()
   //Move to min pos to not touch stepper
   //Disable motors as they do not need to force hold position
   stepperX.moveToPosition(0);
-  stepperX.disableMotor();
-  stepperY.disableMotor();
+  //stepperX.disableMotor();
+  //stepperY.disableMotor();
 }
 
 void loop() 
@@ -167,13 +167,13 @@ void loop()
       {
         float targetPosition =  MIN_X + (float)value / 100.f * SLIDER_LENGTH - 2 * MARGIN;
         stepperX.moveToPosition(targetPosition);
-        stepperX.disableMotor();
+        //stepperX.disableMotor();
       }
       else if(motor == 'y')
       {
         float targetRotation = value;
         stepperY.moveToPosition(targetRotation);
-        stepperY.disableMotor();
+        //stepperY.disableMotor();
       }
 
       newData = false;
