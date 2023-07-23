@@ -8,8 +8,8 @@ public class Program
 {
     public static Task Main(string[] args) => new Program().MainAsync();
 
-    private DiscordSocketClient _client;
-    private SerialPort _serialPort;
+    private DiscordSocketClient? _client;
+    private SerialPort? _serialPort;
 
     public async Task MainAsync()
     {
@@ -20,11 +20,6 @@ public class Program
         Console.WriteLine($"Opening Serial connection to: {comPort}");
         _serialPort = new SerialPort(comPort);
         _serialPort.BaudRate = 115200;
-        //_serialPort.DsrHolding = true;
-        //_serialPort.Parity = Parity.None;
-        //_serialPort.StopBits = StopBits.Two;
-        //_serialPort.DataBits = 8;
-        //_serialPort.Handshake = Handshake.None;
         _serialPort.Open();
 
         _client = new DiscordSocketClient(socketContent);
@@ -39,12 +34,6 @@ public class Program
 
 
         _client.SlashCommandExecuted += Client_SlashCommandExecuted;
-
-        //var commandConfig = new CommandServiceConfig();
-        //commandConfig.CaseSensitiveCommands = false;
-        //_commandService = new CommandService(commandConfig);
-        //_commandHandler = new CommandHandler(_client, _commandService);
-        //await _commandHandler.InstallCommandsAsync();
 
         // Block this task until the program is closed.
         await Task.Delay(-1);
@@ -74,7 +63,7 @@ public class Program
         await command.RespondAsync($"Moving: X:{x} Y:{y}");
     }
 
-    //Only needed once to register our command
+    //Only needed once to register our command once
     private async Task SetupGlobalApplicationCommands()
     {
         List<ApplicationCommandProperties> applicationCommandProperties = new();
