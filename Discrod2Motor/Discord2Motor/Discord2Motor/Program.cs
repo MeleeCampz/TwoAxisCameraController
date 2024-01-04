@@ -80,7 +80,7 @@ public class Program
         moveCommand.WithName("move");
         moveCommand.WithDescription("Handles Motor Movements!");
         moveCommand.AddOption("x", ApplicationCommandOptionType.Integer, "X Position to move Motor", isRequired: false, minValue: 0, maxValue: 100);
-        moveCommand.AddOption("y", ApplicationCommandOptionType.Integer, "Y Rotation to rotate Camera", isRequired: false, minValue: -90, maxValue: 90);
+        moveCommand.AddOption("y", ApplicationCommandOptionType.Integer, "Y Rotation to rotate Camera", isRequired: false, minValue: -180, maxValue: 180);
 
         applicationCommandProperties.Add(moveCommand.Build());
 
