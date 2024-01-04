@@ -126,7 +126,7 @@ void setup()
   stepperX.SetUpLimits(true, MIN_X, MAX_X);
 
   stepperY.SetUp(MOTOR_Y_STEP_PIN, MOTOR_Y_DIRECTION_PIN, MOTOR_Y_ENABLE, MOTOR_Y_STEPS_PER_DEGREE, MOTOR_Y_MAX_VEL, MOTOR_Y_MAX_ACCEL, false, false);
-  stepperY.SetUpLimits(true, -90, 90);
+  stepperY.SetUpLimits(true, MIN_Y, MAX_Y);
 
   debugDisplay("Wait for end stop...");
   waitForEndStopFullPress(button);
