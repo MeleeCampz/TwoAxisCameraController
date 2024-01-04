@@ -40,8 +40,8 @@ const int MOTOR_Y_STEPS_PER_DEGREE = 45;
 const float MOTOR_Y_MAX_VEL = 2000 * 16;
 const float MOTOR_Y_MAX_ACCEL = 2000 * 16;
 
-const float MIN_Y = -90;
-const float MAX_Y = 90;
+const float MIN_Y = -180;
+const float MAX_Y = 180;
 
 void debugDisplay(const char* message)
 {
