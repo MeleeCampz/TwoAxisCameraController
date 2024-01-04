@@ -18,9 +18,17 @@ public class Program
 
         string comPort = File.ReadAllText("Config/MotorConfig.config");
         Console.WriteLine($"Opening Serial connection to: {comPort}");
-        _serialPort = new SerialPort(comPort);
-        _serialPort.BaudRate = 115200;
-        _serialPort.Open();
+
+        try
+        {
+            _serialPort = new SerialPort(comPort);
+            _serialPort.BaudRate = 115200;
+            _serialPort.Open();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
 
         _client = new DiscordSocketClient(socketContent);
         _client.Log += Log;
